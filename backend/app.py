@@ -10,7 +10,7 @@ DB_FILE = "aegis.db"
 def init_db(): #opens that file ebsures table called logs exists and has three columns id the habit named and timestamp
     banana = sqlite3.connect("aegis.db") 
     banana.execute("""CREATE TABLE IF NOT EXISTS logs (id
-    return conn INTEGER PRIMARY KEY AUTOINCREMENT, habit TEXT NOT NULL, timestamp TEXT NOT NULL)""")
+    INTEGER PRIMARY KEY AUTOINCREMENT, habit TEXT NOT NULL, timestamp TEXT NOT NULL)""")
     banana.commit()
     banana.close()
 
@@ -18,7 +18,7 @@ def get_db():
     return sqlite3.connect(DB_FILE)
 
 
-@app.route("/)")
+@app.route("/")
 def home():
     return jsonify({"status": "Aegis backend is live"})
 
@@ -32,17 +32,23 @@ def log_habit(habit):
     log_id = cursor.lastrowid
     db.close()
 
-    return jsonify()
+    return jsonify({
+        "success": True,
+        "logged": habit,
+        "id": log_id,
+        "timestamp": now
+    })
 
 
 @app.route("/logs")
 def view_logs():
-    banana = get_db()
-    rows = banana.execute("SELECT habit, timestamp FROM logs ORDER BY id DESC").fetchall()
-    banana.close()
-    return jsonify([{'habit': r[0], 'timestamp': r[1]} for r in rows])
+    db = get_db()
+    rows = db.execute("SELECT id, habit, timestamp FROM logs ORDER BY id DESC").fetchall()
+    db.close()
+    return jsonify([{'id': r[0], "habit": r[1], "timestamp": r[2]} for r in rows])
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    init_db()
+    app.run(host="0.0.0.0", port=5000, debug=True)
 
 
