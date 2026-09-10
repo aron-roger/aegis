@@ -1,6 +1,15 @@
-<h1> AEGIS LOGS </h1>
-<ul>
-{% for entry in logs %}
-    <li>{{ entry [0] }} - {{ entry[1] }}</li>
-{% endfor %}
-</ul>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Aegis Logs</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1> AEGIS LOGS </h1>
+    <ul>
+    {% for entry in logs %}
+       <li>{{ entry [0] }} - {{ entry[1] }}</li>
+    {% endfor %}
+    </ul>
+</body>
+</html>
