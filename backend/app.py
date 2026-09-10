@@ -1,5 +1,4 @@
-
-
+from flask import Flask, jsonify, render_template
 from flask import Flask, jsonify
 import sqlite3 #saves everything in one file (aegis.db)
 from datetime import datetime
@@ -47,8 +46,17 @@ def view_logs():
     db.close()
     return jsonify([{'id': r[0], "habit": r[1], "timestamp": r[2]} for r in rows])
 
+@app.route("/view")
+def view_page():
+    banana = get_db()
+    rows = banana.execute("SELECT  habit, timestamp FROM logs ORDER BY id DESC").fetchall()
+    banana.close()
+    return render_template("logs.html", logs=rows)
+
+
+
+
 if __name__ == "__main__":
     init_db()
     app.run(host="0.0.0.0", port=5000, debug=True)
-
-
+    
