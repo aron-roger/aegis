@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AEGIS - Hydration Tracker</title>
+
+
+
+    <style>
+        body { 
+            font-family: sans-serif;
+            background: #FFF8E7;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .card-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .card { 
+            background: white;
+            padding: 20px;
+            border-radius: 20px;
+            width: 240px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .number { 
+            font-size: 48px;
+            font-weight: bold;
+            margin: 10px 0; 
+        }
+
+        .unit { 
+            font-size: 20px; 
+            color: #666; 
+        }
+
+        .progress-container { 
+            background: #eee; 
+            border-radius: 10px; 
+            height: 16px; 
+            width: 100%; 
+            margin: 15px 0; 
+            overflow: hidden ; 
+        }
+
+        .progress-fill { 
+            background: #123f88; 
+            height: 100%; 
+            width: 0%; 
+            transition: width 0.4s; 
+        }
+
+        .undo-btn { 
+            background: #7a1a1a;
+            color: white;
+            border: none;  
+            padding: 8px 16px; 
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 10px; 
+        }
+    </style>
+</head> 
+
+
+
+<body>
+
+    <div class="card-container">
+        <!-- CARD 1 -->
+        <div class="card">
+            <h3>Water Intake</h3>
+            <div class="number"><span id="water-total">0</span><span class="unit"> ml</span></div> 
+            <p id="water-percent">0% of Daily Goal</p>  
+            <button class="undo-btn" onclick="undoLog()">Undo Last Log</button> 
+        </div>
+
+        <!-- CARD 2 -->
+        <div class="card">
+            <h3>Daily Goal Progress</h3>
+            <div class="progress-container">
+                <div id="progress-fill" class="progress-fill"></div>
+            </div>
+            <p id="progress-text">0 / 2500 ml achieved</p>
+        </div>
+    </div>
+    
+
+    <script>
+        async function loadSummary() {
+            let response = await fetch('/summary/water');
+            let data = await response.json();
+
+            document.getElementById('water-total').innerText = data.total_ml;
+            document.getElementById('water-percent').innerText = data.percentage + '% of Daily Goal';
+            
+            let barwidth = Math.min(data.percentage, 100);
+            document.getElementById('progress-fill').style.width = barwidth + '%';
+            document.getElementById('progress-text').innerText = data.total_ml + ' / ' + data.goal_ml + ' ml achieved';
+        }
+
+        async function undoLog() {
+            await fetch('/log/water/undo');
+            loadSummary();
+        }
+
+        loadSummary(); 
+        setInterval(loadSummary, 3000);
+    </script>
+</body>
+</html> 
+
+
+
