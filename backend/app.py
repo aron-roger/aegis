@@ -1,6 +1,6 @@
-from flask import Flask, jsonify, render_template
+from flask import Flask, jsonify, render_template, request
 import sqlite3
-from datetime import datetime
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
 DB_FILE = "aegis.db"
@@ -9,32 +9,35 @@ DB_FILE = "aegis.db"
 def get_db():
     db = sqlite3.connect(DB_FILE)
     
-    db.execute("""CREATE TABLE IF NOT EXISTS logs (
+    db.execute("""CREATE TABLE IF NOT EXISTS logs(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         habit TEXT NOT NULL,
-        value REAL,
+        value REAL, 
         unit TEXT,
-        timestamp TEXT NOT NULL
-    )""")
+        timestamp TEXT NOT NULL)
+        """)
     
-    db.execute("""CREATE TABLE IF NOT EXISTS settings (
+    db.execute("""CREATE TABLE IF NOT EXISTS settings(
         habit TEXT PRIMARY KEY,
         default_value REAL,
-        unit TEXT
-    )""")
+        unit TEXT)
+        """)
+
     
     db.execute("""
-        INSERT OR IGNORE INTO settings(habit, default_value, unit)
-        VALUES ('water', 245, 'ml')
-    """)
-    
-    db.execute("""CREATE TABLE IF NOT EXISTS active_sessions (
+        CREATE TABLE IF NOT EXISTS active_sessions(
         habit TEXT PRIMARY KEY,
-        start_time TEXT NOT NULL
-    )""")
+        start_time TEXT NOT NULL)
+        """)
     
     db.commit()
     return db
+
+def format_hrs_min(decimal_hours):
+    total_minutes = int(round(decimal_hours * 60))
+    hrs = total_minutes // 60
+    mins = total_minutes % 60
+    return f"{hrs}h {mins}m"
 
 
 @app.route("/")
@@ -42,20 +45,18 @@ def home():
     return jsonify({"status": "Aegis backend is live"})
 
 
-@app.route("/log/water")
+@app.route("/log/water", methods=["GET", "POST"])
 def log_water():
+
+
     db = get_db()
-    setting = db.execute("SELECT default_value, unit FROM settings WHERE habit = 'water'").fetchone()
-    if setting is None:
-        db.close()
-        return jsonify({"error": "No water setting found"}), 400
-        
-    value, unit = setting
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    db.execute("INSERT INTO logs (habit, value, unit, timestamp) VALUES (?, ?, ?, ?)", ("water", value, unit, now))
+    db.execute("INSERT INTO logs (habit, value, unit, timestamp) VALUES ('water', '245', 'ml', ?)", (now,),)
     db.commit()
     db.close()
-    return jsonify({"habit": "water", "value": value, "unit": unit, "timestamp": now})
+
+    return jsonify({"habit": "water", "value": "245", "unit": "ml", "timestamp": now})
+
 
 
 @app.route("/logs/water")
@@ -81,23 +82,40 @@ def water_summary():
     today = datetime.now().strftime("%Y-%m-%d")
 
     result = db.execute("SELECT SUM(value) FROM logs WHERE habit = 'water' AND timestamp LIKE ?", (f"{today}%",)).fetchone()
+    total_water = int(result[0]) if result[0] is not None else 0
+
+    avg_result = db.execute(""" SELECT AVG(daily_sum) FROM (SELECT SUM(value) as daily_sum FROM logs WHERE habit = 'water' GROUP BY strftime('%Y-%m-%d', timestamp)) """).fetchone()
+    avg_water = int(avg_result[0]) if avg_result and avg_result[0] is not None else 0
+
+
+
+    setting = db.execute("SELECT default_value FROM settings WHERE habit = 'water' ").fetchone()
+    default_dose = int(setting[0]) if setting else 245
+
     db.close()
 
-    total_water = result[0] if result[0] is not None else 0
     goal = 2500
-    percentage = round((total_water / goal) * 100)
-    
+    percentage = min(100.0, round((total_water / goal) * 100, 1))
+
     return jsonify({
-        'today_date': today,
-        "total_ml": total_water,
-        "goal_ml": goal,
-        "percentage": percentage
-    })
+        "today_date" : today,
+        "total_ml" : total_water,
+        "goal_ml" : goal,
+        "percentage" : percentage,
+        "average_ml" : avg_water,
+        "default_dose" : default_dose
+    })  
 
 
 @app.route("/hydration")
 def hydration_screen():
-    return render_template("hydration.html")
+    db = get_db()
+    setting = db.execute("SELECT default_value FROM settings WHERE habit = 'water'").fetchone()
+    default_dose = int(setting[0]) if setting else 245
+    db.close()
+
+    return render_template("hydration.html", default_dose=default_dose)
+
 
 
 @app.route("/log/sleep/toggle")
@@ -144,19 +162,42 @@ def sleep_summary():
     is_sleeping = session is not None
 
     result = db.execute("SELECT SUM(value) FROM logs WHERE habit = 'sleep' AND timestamp LIKE ?", (f"{today}%",)).fetchone()
+    total_hours = result[0] if result[0] is not None else 0.0
+
+    if total_hours >=7.0:
+        quality = "Good"
+    elif total_hours > 0:
+        quality = 'Fair'
+    else:
+        quality = "--"
+
+    avg_result = db.execute("""
+        SELECT avg(daily_sum) FROM (
+            SELECT SUM(value) as daily_sum
+            FROM logs
+            WHERE habit = 'sleep'
+            GROUP BY strftime('%Y-%m-%d', timestamp)
+        )
+    """).fetchone()
+    avg_hours = avg_result[0] if avg_result and avg_result[0] is not None else 0.0
+
+    last_log = db.execute("SELECT timestamp, value FROM logs WHERE habit = 'sleep' ORDER BY id DESC LIMIT 1").fetchone()
+    time_range = "--:-- - --:--"
+    if last_log:
+        end_dt = datetime.strptime(last_log[0], "%Y-%m-%d %H:%M:%S")
+        duration = last_log[1]
+        start_dt = end_dt - timedelta(hours=duration)
+        time_range = f"{start_dt.strftime('%H:%M')} - {end_dt.strftime('%H:%M')}"                           
     db.close()
-
-    total_hours = result[0] if result[0] is not None else 0
-    goal = 8.0
-    percentage = round((total_hours / goal) * 100)
-
+                                                                                                                
     return jsonify({
         "is_sleeping": is_sleeping,
-        "today_hours": total_hours,
-        "goal_hours": goal,
-        "percentage": percentage
+        "total_slept": format_hrs_min(total_hours),
+        "quality": quality,
+        "average": format_hrs_min(avg_hours),
+        "time_range": time_range
     })
-
+    
 
 @app.route("/logs")
 def view_logs():
@@ -174,6 +215,16 @@ def view_page():
     return render_template("logs.html", logs=rows)
 
 
+@app.route("/sleep")
+def sleep_screen():
+    return render_template("sleep.html")  
+
+
 if __name__ == "__main__":
     get_db()
     app.run(host="0.0.0.0", port=5000, debug=True)
+
+
+    
+
+

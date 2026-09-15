@@ -1,120 +1,308 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>AEGIS - Hydration Tracker</title>
-
-
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AEGIS - Hydration</title>
     <style>
-        body { 
-            font-family: sans-serif;
-            background: #FFF8E7;
-            text-align: center;
-            padding: 40px;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
 
-        .card-container {
+        body {
+            background-color: #000000;
+            background-image: radial-gradient(rgba(255, 255, 255, 0.12) 1px, transparent 1px);
+            background-size: 28px 28px;
+            color: white;
+            min-height: 100vh;
             display: flex;
             justify-content: center;
-            gap: 20px;
-            flex-wrap: wrap;
-        }
-
-        .card { 
-            background: white;
             padding: 20px;
-            border-radius: 20px;
-            width: 240px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
 
-        .number { 
-            font-size: 48px;
-            font-weight: bold;
-            margin: 10px 0; 
+        .container {
+            width: 100%;
+            max-width: 420px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
         }
 
-        .unit { 
-            font-size: 20px; 
-            color: #666; 
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            padding-top: 8px;
         }
 
-        .progress-container { 
-            background: #eee; 
-            border-radius: 10px; 
-            height: 16px; 
-            width: 100%; 
-            margin: 15px 0; 
-            overflow: hidden ; 
-        }
-
-        .progress-fill { 
-            background: #123f88; 
-            height: 100%; 
-            width: 0%; 
-            transition: width 0.4s; 
-        }
-
-        .undo-btn { 
-            background: #7a1a1a;
+        .back-btn {
+            background: none;
+            border: none;
             color: white;
-            border: none;  
-            padding: 8px 16px; 
-            border-radius: 10px;
+            font-size: 22px;
             cursor: pointer;
-            font-size: 14px;
-            margin-top: 10px; 
         }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        .glass-card {
+            background: rgba(17, 18, 20, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 20px;
+            padding: 34px 20px;
+        }
+
+        .card-title {
+            font-size: 13px;
+            color: #9499a5;
+            margin-bottom: 6px;
+        }
+
+        .metric-value {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .metric-unit {
+            font-size: 13px;
+            color: #9499a5;
+        }
+
+        .card-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .progress-ring {
+            width: 70px;
+            height: 70px;
+        }
+
+        .progress-ring circle {
+            fill: transparent;
+            stroke-width: 5;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+
+        .bg-ring {
+            stroke: rgba(255, 255, 255, 0.1);
+        }
+
+        .accent-ring {
+            stroke: #4e88d8;
+            stroke-dasharray: 132;
+            stroke-dashoffset: 132;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 0.4s ease;
+        }
+
+        .wide-card{
+            width: 100%;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .history-badge {
+            font-size: 11px;
+            color: #717680;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 2px 8px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .table-container {
+            max-height: 220px;
+            overflow-y: auto;
+        }
+
+        .table-container::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .history-table th {
+            text-align: left;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.05rem;
+            color: #717680;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0,08);
+        }
+
+        .history-table td {
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .history-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .time-cell {
+            color: #9499a5;
+        }
+
+        .amount-cell {
+            font-weight: 600;
+            color: #9499a5;
+            text-align: right;
+        }
+
+
     </style>
-</head> 
-
-
-
+</head>
 <body>
-
-    <div class="card-container">
-        <!-- CARD 1 -->
-        <div class="card">
-            <h3>Water Intake</h3>
-            <div class="number"><span id="water-total">0</span><span class="unit"> ml</span></div> 
-            <p id="water-percent">0% of Daily Goal</p>  
-            <button class="undo-btn" onclick="undoLog()">Undo Last Log</button> 
+    <div class="container">
+        <div class="header">
+            <button class="back-btn" onclick="window.location.href='/'">&larr;</button>
+            <span>Hydration Tracker</span>
         </div>
 
-        <!-- CARD 2 -->
-        <div class="card">
-            <h3>Daily Goal Progress</h3>
-            <div class="progress-container">
-                <div id="progress-fill" class="progress-fill"></div>
+        <div class="cards-grid">
+            <div class="glass-card">
+                <div class="card-title">Water Intake</div>
+                <div class="card-content">
+                    <div>
+                        <span class="metric-value" id="total-water">0</span>
+                        <span class="metric-unit">ml</span>
+                        <div class="card-title" style="margin-top: 6px;" id="goal-percentage">0% of Goal</div>
+                    </div>
+                    <svg class="progress-ring" viewBox="0 0 52 52">
+                        <circle class="bg-ring" cx="26" cy="26" r="21"></circle>
+                        <circle class="accent-ring" id="ring" cx="26" cy="26" r="21"></circle>
+                    </svg>
+                </div>
             </div>
-            <p id="progress-text">0 / 2500 ml achieved</p>
+
+            <div class="glass-card">
+                <div class="card-title">Your Average intake</div>
+                <div style="margin-top: 12px;">
+                    <span class="metric-value" id="average-water">0</span>
+                    <span class="metric-unit">ml/day</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass-card wide-card">
+            <!-- card headerr -->
+            <div class="card-header">
+                <span class="card-title" style="margin-bottom: 0;">Recent Logs</span>
+                <span class="histor-badge" id="log-count">0 logged</span>
+            </div>
+            <div class="table-container">
+                <table class="history-table">
+                    <!-- the top row -->
+                    <thead>
+                        <tr>
+                            <th>Time Logged</th>
+                            <th style="text-align: right;">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-rows">
+                        <tr>
+                            <td colspan="2" style="text-align: center; color: #717680; padding: 16px 0;">Loading...</td>        
+                        </tr>
+                    </tbody>
+                    
+                </table>
+            </div>
         </div>
     </div>
-    
 
     <script>
-        async function loadSummary() {
-            let response = await fetch('/summary/water');
-            let data = await response.json();
+    function loadSummary() {
+        fetch('/summary/water')
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('total-water').innerText = data.total_ml;
+                document.getElementById('average-water').innerText = data.average_ml;
+                document.getElementById('goal-percentage').innerText = `${data.percentage}% of Goal`;
 
-            document.getElementById('water-total').innerText = data.total_ml;
-            document.getElementById('water-percent').innerText = data.percentage + '% of Daily Goal';
-            
-            let barwidth = Math.min(data.percentage, 100);
-            document.getElementById('progress-fill').style.width = barwidth + '%';
-            document.getElementById('progress-text').innerText = data.total_ml + ' / ' + data.goal_ml + ' ml achieved';
+                const ring = document.getElementById('ring');
+                const radius = 21;
+                const circumference = 2 * Math.PI * radius;
+                const offset = circumference - (data.percentage / 100) * circumference;
+
+                ring.style.strokeDashoffset = Math.max(0, offset);
+            })
+            .catch(err => console.error("Summary error:", err));
+        }
+        loadSummary();
+        
+        // specifically this idk how to so slicing
+        function formatTimestamp(rawStr) {
+            if (!rawStr) return "--:--";
+            const [dateStr, timeStr] = rawStr.split(' ');
+            if (!timeStr) return rawStr;
+
+            // Slices "20:05:00" straight to "20:05" (24-hour time)
+            const hhmm = timeStr.slice(0, 5); 
+            const today = new Date().toISOString().split('T')[0];
+
+            // Returns "20:05 - Today" or "20:05 - 09/14"
+            if (dateStr === today) {
+                return `${hhmm} - Today`;
+            } else {
+                const [year, month, day] = dateStr.split('-');
+                return `${hhmm} - ${month}/${day}`;
+            }
         }
 
-        async function undoLog() {
-            await fetch('/log/water/undo');
+        function loadHistory() {
+            fetch('/logs/water')
+                .then(res => res.json())
+                .then(logs => {
+                    const tbody = document.getElementById('history-rows');
+                    document.getElementById('log-count').innerText = `${logs.length} logged`;
+
+                    if (logs.length === 0) {
+                        tbody.innerHTML = `<tr><td colspan="2" style="text-align: center; color: #717680; padding: 16px 0;">No entries recorded yet</td></tr>`;
+                        return;
+                    }
+
+                    tbody.innerHTML = logs.slice(0, 15).map(log => `
+                        <tr>
+                            <td class="time-cell">${formatTimestamp(log.timestamp)}</td>
+                            <td class="amount-cell">+${log.value} ${log.unit}</td>
+                        </tr>
+                    `).join('');
+                })
+                .catch(err => console.error("History error:", err));
+        }
+
+        function refreshAll() {
             loadSummary();
+            loadHistory();
         }
 
-        loadSummary(); 
-        setInterval(loadSummary, 3000);
+        refreshAll();
+        setInterval(refreshAll, 3000);
     </script>
 </body>
-</html> 
-
-
-
+</html>
