@@ -18,7 +18,6 @@ Aegis has hydration route for now and uses flask to operate inside my web for no
 - It logs user metrics for eater intake, since i believe not everyone drinks a glass of liquid each time they decide to drink, so for now i have added a variable/stepper water intake.
 
 - While, it always calculates average intakes throughout the days, it has a default target/goal which is 2500ml each, i have plans to let user decide the amount of water they want to target.
-<<<<<<< HEAD
 
 - Also, it has a graph where the user can check their metric with a span of a day, a week and a month. Personally I prefer graphs as they provide a better understanding over a range of logs/inputs.
 
@@ -32,21 +31,3 @@ Aegis has hydration route for now and uses flask to operate inside my web for no
 
 ### Custom
 (soon)
-=======
-
-- Also, it has a graph where the user can check their metric with a span of a day, a week and a month. Personally I prefer graphs as they provide a better understanding over a range of logs/inputs.
-
-- History table; that logs history as per the name suggests, for every day.
-
-- Lastly, A bar for days where the user can change the days to see the log for each day, providing data for the days, the user has logged into.
-
-
-### Sleep
-(soon)
-
-### Custom
-(soon)
-
->>>>>>> 61cedff (done with hydration html)
-
-
