@@ -1,32 +1,35 @@
-# aegis
+# AEGIS SYSTEM
+------------------------------------------------------------------------------
+## About:
+It is a tracking app which logs a metrics in a more interactive way, where the user has to scan the sticker on an object, to log its metrics. I personally have logged my metrics because i might be a calculating guy, and it was kinda hard to log each day, I have used both digital and analog ways to track my habits, and honestly tracking water/hydration has been most annoying because i cannot get to a log to log my water each time i take a sip, nor i could count the times i have dank water.
 
-A new Flutter project.
+I believe it is a fun way to log your metrics. Not, just hydration we can track this way but can also track medicine, sleep or any other habit we would like to tweak. We can go even beyond that i believe we can set a route where we can use this system to log anything (suitable) in a fun manner.
 
-## Getting Started
+I must say, I have to lock in for this project since I had college in the morning, and as i come to home all i try my best is to work at it, and not only that, I must acknowledge it is my first time ever making a complete software project, not gonna lie it was fun, I have learned a lot of this and since it is not complete yet I assume I have a journey ahead to look forward to.
 
-This project is a starting point for a Flutter application.
+-------------------------------------------------------------------------------
 
-A few resources to get you started if this is your first Flutter project:
+## Features:
+Aegis has hydration route for now and uses flask to operate inside my web for now, I have idea of completing it as an dedicated application.
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+### Hydration
 
-##WHAT IS THAT, IM MAKING?
-I have been making a project called Aegis specifically to record habits and such that it is more manual and physical rather than clicking few buttons,
+- It logs user metrics for eater intake, since i believe not everyone drinks a glass of liquid each time they decide to drink, so for now i have added a variable/stepper water intake.
 
-that is why i have made this nfc habit tracker, where you can simply write a deep-link to your nfc and yet it logs your habit e.g water intake, sleep, medicine etc into a db and provide a clean interface to track down your metric. 
+- While, it always calculates average intakes throughout the days, it has a default target/goal which is 2500ml each, i have plans to let user decide the amount of water they want to target.
 
-Is is a form of automation to your habits and things you would like to track, I have been making this for stardance program, to speak of coding, there are a lot of new things i practiced while coding, specifically html, i used ai for learning rather just copy-pasting, hence i cannot be biased to say i have learned every single detail, but i must say i learned as much as i could, including;
+- Also, it has a graph where the user can check their metric with a span of a day, a week and a month. Personally I prefer graphs as they brovide a better understnading over a range of logs/inputs.
 
-- css inside html
-- calibrating box models
-- use of div and span
-- newly learned <table>
-- layout of mechanic
+- History table; that logs history as per the name suggests, for every day.
 
-i havent surely grasped, DOM manipulation and Fetch API and promises inside my code i have mentioned it inside my code, i might be vague but i have surely mentioned about it. Few more things that i need to understand. Yet i can confidently say it was not in vain, but have provided me an opportunity to start at it, which i was procastinating for a longgg time. I am thankful for star-dance to provide a kickstart to my journey to coding.
+- Lastly,  A bar for days where the user can change the days to see the log for each day. giving data over the dats the user has logged into.
+
+
+### Sleep
+(soon)
+
+### Custom
+(soon)
+
+
