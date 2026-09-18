@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AEGIS - Hydration</title>
+    <title>AEGIS - HYDRATION</title>
     <style>
+        /* BASE & RESET */
         * {
             margin: 0;
             padding: 0;
@@ -28,16 +29,16 @@
             max-width: 420px;
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 16px;
         }
 
+        /* HEADER */
         .header {
             display: flex;
             align-items: center;
             gap: 12px;
             font-size: 20px;
             font-weight: 600;
-            margin-bottom: 4px;
             padding-top: 8px;
         }
 
@@ -47,21 +48,66 @@
             color: white;
             font-size: 22px;
             cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .back-btn:active {
+            opacity: 0.6;
+        }
+
+        /* CONTAINER CARDS */
+        .glass-card {
+            background: rgba(18, 22, 30, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.071);
+            border-radius: 20px;
+            padding: 20px;
+        }
+
+        /* DATE SELECTOR */
+        .date-strip {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+            scrollbar-width: none;
+        }
+        .date-strip::-webkit-scrollbar { display: none; }
+
+        .date-pill {
+            flex: 0 0 auto;
+            min-width: 44px;
+            height: 44px;
+            border-radius: 22px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: #9499a5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .date-pill:active {
+            opacity: 0.8;
+        }
+
+        .date-pill.active {
+            background: #4e88d8;
+            color: #000000;
+            border-color: #4e88d8;
+            box-shadow: 0 0 12px rgba(66, 146, 226, 0.3);
         }
 
         .cards-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 14px;
-        }
-
-        .glass-card {
-            background: rgba(17, 18, 20, 0.75);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 20px;
-            padding: 34px 20px;
         }
 
         .card-title {
@@ -87,8 +133,8 @@
         }
 
         .progress-ring {
-            width: 70px;
-            height: 70px;
+            width: 64px;
+            height: 64px;
         }
 
         .progress-ring circle {
@@ -98,10 +144,7 @@
             transform-origin: 50% 50%;
         }
 
-        .bg-ring {
-            stroke: rgba(255, 255, 255, 0.1);
-        }
-
+        .bg-ring { stroke: rgba(255, 255, 255, 0.1); }
         .accent-ring {
             stroke: #4e88d8;
             stroke-dasharray: 132;
@@ -110,9 +153,146 @@
             transition: stroke-dashoffset 0.4s ease;
         }
 
-        .wide-card{
-            width: 100%;
+        /* VARIABLE WATER LOG */
+        .stepper-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
         }
+
+        .stepper-controls {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .step-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(23, 49, 87, 0.341);
+            color: white;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+
+        .step-btn:active { background: rgba(255, 255, 255, 0.25); }
+
+        .log-main-btn {
+            background: #4e88d8;
+            color: #000000;
+            border: none;
+            padding: 10px 28px;
+            border-radius: 22px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+            box-shadow: 0 4px 14px rgba(23, 49, 87, 0.341);
+        }
+
+        .log-main-btn:active { transform: scale(0.95); }
+
+        /* UNDO */
+        .undo-link {
+            background: none;
+            border: none;
+            padding: 4px 8px;
+            color: #8a8f9d;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: underline;
+            text-underline-offset: 3px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 2px;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+
+        .undo-link:active {
+            color: #f87171;
+            opacity: 0.8;
+        }
+
+        /* RANGE SELECTOR TOGGLES */
+        .range-strip {
+            display: flex;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 3px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .range-pill {
+            flex: 1;
+            text-align: center;
+            padding: 8px 0;
+            font-size: 12px;
+            font-weight: 600;
+            color: #9499a5;
+            border-radius: 12px;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .range-pill:active {
+            opacity: 0.7;
+        }
+
+        .range-pill.active {
+            background: #4e88d8;
+            color: #000000;
+        }
+
+        /* GRAPH CARD SVG */
+        .graph-card {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .chart-container {
+            width: 100%;
+            height: 150px;
+            position: relative;
+        }
+
+        .graph-svg {
+            width: 100%;
+            height: 100%;
+            overflow: visible;
+        }
+
+        .graph-path {
+            fill: none;
+            stroke: #4e88d8;
+            stroke-width: 3;
+            stroke-linecap: round;
+        }
+
+        .graph-grid-line {
+            stroke: rgba(255, 255, 255, 0.08);
+            stroke-dasharray: 3;
+        }
+
+        .axis-text {
+            fill: #717680;
+            font-size: 10px;
+            font-weight: 500;
+        }
+
+        /* TABLE */
+        .wide-card { width: 100%; }
 
         .card-header {
             display: flex;
@@ -131,13 +311,11 @@
         }
 
         .table-container {
-            max-height: 220px;
+            max-height: 180px;
             overflow-y: auto;
         }
 
-        .table-container::-webkit-scrollbar {
-            width: 4px;
-        }
+        .table-container::-webkit-scrollbar { width: 4px; }
 
         .history-table {
             width: 100%;
@@ -152,7 +330,7 @@
             letter-spacing: 0.05rem;
             color: #717680;
             padding-bottom: 8px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0,08);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         }
 
         .history-table td {
@@ -160,30 +338,26 @@
             border-bottom: 1px solid rgba(255, 255, 255, 0.04);
         }
 
-        .history-table tr:last-child td {
-            border-bottom: none;
-        }
-
-        .time-cell {
-            color: #9499a5;
-        }
-
+        .time-cell { color: #9499a5; }
         .amount-cell {
             font-weight: 600;
-            color: #9499a5;
+            color: #4e88d8;
             text-align: right;
         }
-
-
     </style>
 </head>
 <body>
     <div class="container">
+        <!-- HEADER -->
         <div class="header">
             <button class="back-btn" onclick="window.location.href='/'">&larr;</button>
             <span>Hydration Tracker</span>
         </div>
 
+        <!-- DATE STRIP -->
+        <div class="date-strip" id="date-strip"></div>
+
+        <!-- METRICS SUMMARY CARDS -->
         <div class="cards-grid">
             <div class="glass-card">
                 <div class="card-title">Water Intake</div>
@@ -209,15 +383,54 @@
             </div>
         </div>
 
+        <!-- WATER STEPPER LOGGING CARD -->
+        <div class="glass-card stepper-card">
+            <div class="card-title">Water Log per scan:</div>
+            <div class="stepper-controls">
+                <button class="step-btn" onclick="adjustDose(-25)">&minus;</button>
+                <button class="log-main-btn" id="log-btn" onclick="logWater()">245 ml</button>
+                <button class="step-btn" onclick="adjustDose(25)">&plus;</button>
+            </div>
+            
+            <button class="undo-link" onclick="undoLastLog()">
+                &#x21A9; Undo last log
+            </button>
+        </div>
+
+        <!-- RANGE SELECTOR TOGGLE -->
+        <div class="range-strip">
+            <div class="range-pill active" onclick="setRange('1d', this)">1d</div>
+            <div class="range-pill" onclick="setRange('1w', this)">1w</div>
+            <div class="range-pill" onclick="setRange('1m', this)">1m</div>
+        </div>
+
+        <!-- GRAPH CARD -->
+        <div class="glass-card graph-card">
+            <div class="card-title">Hydration Trend</div>
+            <div class="chart-container">
+                <svg class="graph-svg" id="graph-svg" viewBox="0 0 350 140" preserveAspectRatio="none">
+                    <line x1="35" y1="20" x2="340" y2="20" class="graph-grid-line" />
+                    <line x1="35" y1="60" x2="340" y2="60" class="graph-grid-line" />
+                    <line x1="35" y1="100" x2="340" y2="100" class="graph-grid-line" />
+
+                    <text x="0" y="24" class="axis-text">2.5L</text>
+                    <text x="0" y="64" class="axis-text">1.2L</text>
+                    <text x="12" y="104" class="axis-text">0L</text>
+
+                    <path d="" class="graph-path" id="graph-path" />
+                    <g id="x-axis-labels"></g>
+                </svg>
+            </div>
+        </div>
+
+        <!-- RECENT LOGS TABLE CARD -->
         <div class="glass-card wide-card">
-            <!-- card headerr -->
             <div class="card-header">
                 <span class="card-title" style="margin-bottom: 0;">Recent Logs</span>
-                <span class="histor-badge" id="log-count">0 logged</span>
+                <span class="history-badge" id="log-count">0 logged</span>
             </div>
             <div class="table-container">
                 <table class="history-table">
-                    <!-- the top row -->
                     <thead>
                         <tr>
                             <th>Time Logged</th>
@@ -229,64 +442,110 @@
                             <td colspan="2" style="text-align: center; color: #717680; padding: 16px 0;">Loading...</td>        
                         </tr>
                     </tbody>
-                    
                 </table>
             </div>
         </div>
     </div>
 
     <script>
-    function loadSummary() {
-        fetch('/summary/water')
-            .then(res => res.json())
-            .then(data => {
-                document.getElementById('total-water').innerText = data.total_ml;
-                document.getElementById('average-water').innerText = data.average_ml;
-                document.getElementById('goal-percentage').innerText = `${data.percentage}% of Goal`;
+        let activeDate = new Date().toISOString().split('T')[0];
+        let currentDose = {{ default_dose or 245 }};
+        let activeRange = '1d';
 
-                const ring = document.getElementById('ring');
-                const radius = 21;
-                const circumference = 2 * Math.PI * radius;
-                const offset = circumference - (data.percentage / 100) * circumference;
+        function initDateStrip() {
+            const strip = document.getElementById('date-strip');
+            strip.innerHTML = '';
+            const today = new Date();
 
-                ring.style.strokeDashoffset = Math.max(0, offset);
-            })
-            .catch(err => console.error("Summary error:", err));
+            for (let i = 13; i >= 0; i--) {
+                const d = new Date();
+                d.setDate(today.getDate() - i);
+                const isoDate = d.toISOString().split('T')[0];
+                const dayNum = d.getDate();
+
+                const pill = document.createElement('div');
+                pill.className = `date-pill ${isoDate === activeDate ? 'active' : ''}`;
+                pill.innerText = dayNum;
+                pill.onclick = () => {
+                    document.querySelectorAll('.date-pill').forEach(p => p.classList.remove('active'));
+                    pill.classList.add('active');
+                    activeDate = isoDate;
+                    refreshAll();
+                };
+                strip.appendChild(pill);
+            }
         }
-        loadSummary();
-        
-        // specifically this idk how to so slicing
+
+        function adjustDose(delta) {
+            currentDose = Math.max(25, currentDose + delta);
+            document.getElementById('log-btn').innerText = `${currentDose} ml`;
+        }
+
+        function logWater() {
+            fetch(`/log/water?value=${currentDose}`, { method: 'POST' })
+                .then(res => res.json())
+                .then(() => refreshAll())
+                .catch(err => console.error("Logging error:", err));
+        }
+
+        function undoLastLog() {
+            fetch(`/log/water/undo?date=${activeDate}`, { method: 'DELETE' })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === "success" || res.ok) {
+                        refreshAll();
+                    }
+                })
+                .catch(err => console.error("Undo error:", err));
+        }
+
+        function setRange(range, el) {
+            document.querySelectorAll('.range-pill').forEach(p => p.classList.remove('active'));
+            el.classList.add('active');
+            activeRange = range;
+            loadAnalytics();
+        }
+
+        function loadSummary() {
+            fetch(`/summary/water?date=${activeDate}`)
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('total-water').innerText = data.total_ml;
+                    document.getElementById('average-water').innerText = data.average_ml;
+                    document.getElementById('goal-percentage').innerText = `${data.percentage}% of Goal`;
+
+                    const ring = document.getElementById('ring');
+                    const circumference = 2 * Math.PI * 21;
+                    const offset = circumference - (data.percentage / 100) * circumference;
+                    ring.style.strokeDashoffset = Math.max(0, offset);
+                })
+                .catch(err => console.error("Summary error:", err));
+        }
+
         function formatTimestamp(rawStr) {
             if (!rawStr) return "--:--";
             const [dateStr, timeStr] = rawStr.split(' ');
             if (!timeStr) return rawStr;
 
-            // Slices "20:05:00" straight to "20:05" (24-hour time)
-            const hhmm = timeStr.slice(0, 5); 
+            const hhmm = timeStr.slice(0, 5);
             const today = new Date().toISOString().split('T')[0];
 
-            // Returns "20:05 - Today" or "20:05 - 09/14"
-            if (dateStr === today) {
-                return `${hhmm} - Today`;
-            } else {
-                const [year, month, day] = dateStr.split('-');
-                return `${hhmm} - ${month}/${day}`;
-            }
+            return (dateStr === today) ? `${hhmm} - Today` : `${hhmm} - ${dateStr.slice(5)}`;
         }
 
         function loadHistory() {
-            fetch('/logs/water')
+            fetch(`/logs/water?date=${activeDate}`)
                 .then(res => res.json())
                 .then(logs => {
                     const tbody = document.getElementById('history-rows');
                     document.getElementById('log-count').innerText = `${logs.length} logged`;
 
-                    if (logs.length === 0) {
-                        tbody.innerHTML = `<tr><td colspan="2" style="text-align: center; color: #717680; padding: 16px 0;">No entries recorded yet</td></tr>`;
+                    if (!logs || logs.length === 0) {
+                        tbody.innerHTML = `<tr><td colspan="2" style="text-align: center; color: #717680; padding: 16px 0;">No entries recorded for this date</td></tr>`;
                         return;
                     }
 
-                    tbody.innerHTML = logs.slice(0, 15).map(log => `
+                    tbody.innerHTML = logs.map(log => `
                         <tr>
                             <td class="time-cell">${formatTimestamp(log.timestamp)}</td>
                             <td class="amount-cell">+${log.value} ${log.unit}</td>
@@ -296,13 +555,66 @@
                 .catch(err => console.error("History error:", err));
         }
 
+        function loadAnalytics() {
+            fetch(`/analytics/water?range=${activeRange}&date=${activeDate}`)
+                .then(res => res.json())
+                .then(data => {
+                    const path = document.getElementById('graph-path');
+                    const xAxisGroup = document.getElementById('x-axis-labels');
+                    xAxisGroup.innerHTML = '';
+
+                    if (!data || data.length === 0) {
+                        path.setAttribute('d', 'M 35 100 L 340 100');
+                        return;
+                    }
+
+                    const maxGoal = 2500;
+                    const xStart = 35;
+                    const xEnd = 340;
+                    const yTop = 20;
+                    const yBottom = 100;
+                    const availableWidth = xEnd - xStart;
+
+                    const stepX = availableWidth / Math.max(1, data.length - 1);
+
+                    const points = data.map((item, idx) => {
+                        const val = item.total_ml || item.ml || 0;
+                        const x = xStart + (idx * stepX);
+                        const y = yBottom - Math.min(1, val / maxGoal) * (yBottom - yTop);
+                        return { x, y, label: item.hour || item.date || '' };
+                    });
+
+                    const pathStr = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+                    path.setAttribute('d', pathStr);
+
+                    const labelInterval = Math.ceil(data.length / 5);
+                    points.forEach((p, i) => {
+                        if (i % labelInterval === 0 || i === points.length - 1) {
+                            const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                            text.setAttribute("x", p.x);
+                            text.setAttribute("y", "125");
+                            text.setAttribute("class", "axis-text");
+                            text.setAttribute("text-anchor", "middle");
+
+                            let displayLabel = p.label;
+                            if (displayLabel.length > 5) displayLabel = displayLabel.slice(-5);
+                            
+                            text.textContent = displayLabel;
+                            xAxisGroup.appendChild(text);
+                        }
+                    });
+                })
+                .catch(err => console.error("Analytics graph error:", err));
+        }
+
         function refreshAll() {
             loadSummary();
             loadHistory();
+            loadAnalytics();
         }
 
+        initDateStrip();
         refreshAll();
-        setInterval(refreshAll, 3000);
     </script>
 </body>
 </html>
