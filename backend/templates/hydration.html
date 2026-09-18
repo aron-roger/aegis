@@ -449,7 +449,7 @@
 
     <script>
         let activeDate = new Date().toISOString().split('T')[0];
-        let currentDose = {{ default_dose or 245 }};
+        let currentDose = { default_dose }
         let activeRange = '1d';
 
         function initDateStrip() {

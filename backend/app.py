@@ -49,18 +49,13 @@ def format_hrs_min(decimal_hours):
 def home():
     return jsonify({"status": "Aegis backend is live"})
 
-
-# ==========================================
-# HYDRATION TRACKER ROUTES
-# ==========================================
-
+# HYDRATION
 
 @app.route("/log/water", methods=["GET", "POST"])
 def log_water():
     db = get_db()
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    # FIXED: Corrected column typo 'habot' -> 'habit'
     setting = db.execute(
         "SELECT default_value FROM settings WHERE habit = 'water'"
     ).fetchone()
@@ -206,7 +201,6 @@ def water_analytics():
             {"hour": int(r[0]), "total_ml": int(r[1])} for r in rows
         ]
     else:
-        # Daily totals over the last N days (default 7)
         days = request.args.get("days", 7, type=int)
         query = """
             SELECT DATE(timestamp) as log_date, SUM(value) as total_ml
