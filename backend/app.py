@@ -189,14 +189,18 @@ def water_analytics():
     if time_range == "1d":
         # Hourly breakdown for selected date
         rows = db.execute("""
-            SELECT strftime('%H:00', timestamp) as log_hour, SUM(value) as total
+            SELECT strftime('%H:%M', timestamp) as log_time, value
             FROM logs
             WHERE habit = 'water' AND timestamp LIKE ?
-            GROUP BY strftime('%H', timestamp)
             ORDER BY timestamp ASC
         """, (f"{target_date}%",)).fetchall()
 
-        chart_data = [{"hour": r[0], "total_ml": int(r[1]) if r[1] else 0} for r in rows]
+        chart_data = [{"hour": "00:00", "total_ml": 0}]  # Baseline starting point at midnight
+        running_total = 0
+
+        for r in rows:
+            running_total += int(r[1]) if r[1] else 0
+            chart_data.append({"hour": r[0], "total_ml": running_total})
 
     elif time_range == "1w":
         # Last 7 days up to selected date
