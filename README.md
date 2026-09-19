@@ -26,6 +26,12 @@ Aegis has hydration route for now and uses flask to operate inside my web for no
 - Lastly, A bar for days where the user can change the days to see the log for each day, providing data for the days, the user has logged into.
 
 
+--------------------------------------------------------------------------------
+
+## Note:
+The average is calculated by the number of days you have logged at least once, so my recommendation is you may log full day water intake or just dont if you dont remeber, what that will do if you have like log for 3 days and for a single day you havent put effort and have logged the wrong amount, you may delete the days log, with undo button. So that would do is the total amount will be divied by only those 2 days you are sure you have logged correctly.
+
+
 ### Sleep
 (soon)
 
