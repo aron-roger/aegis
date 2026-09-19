@@ -28,7 +28,8 @@ def get_db():
     )
 
     db.execute(
-        """CREATE TABLE IF NOT EXISTS active_sessions(
+        """
+        CREATE TABLE IF NOT EXISTS active_sessions(
         habit TEXT PRIMARY KEY,
         start_time TEXT NOT NULL)
         """
@@ -49,27 +50,40 @@ def format_hrs_min(decimal_hours):
 def home():
     return jsonify({"status": "Aegis backend is live"})
 
+
 # HYDRATION
+
 
 @app.route("/log/water", methods=["GET", "POST"])
 def log_water():
+    """Supports dynamic amounts and respects date passed from date-strip."""
     db = get_db()
-    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
+    # Get default setting value
     setting = db.execute(
         "SELECT default_value FROM settings WHERE habit = 'water'"
     ).fetchone()
-    default_value = float(setting[0]) if setting else 245.0
+    default_dose = setting[0] if setting else 245.0
 
-    value = default_value
+    # Extract value
+    value = default_dose
     if request.is_json and request.json and "value" in request.json:
         value = float(request.json["value"])
+    elif request.method == "POST" and "value" in request.form:
+        value = float(request.form["value"])
     elif "value" in request.args:
         value = float(request.args["value"])
 
+    # Respect selected date from UI if provided
+    target_date = request.args.get("date")
+    current_time = datetime.now().strftime("%H:%M:%S")
+    if target_date:
+        now = f"{target_date} {current_time}"
+    else:
+        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
     db.execute(
-        "INSERT INTO logs (habit, value, unit, timestamp) VALUES ('water', ?,"
-        " 'ml', ?)",
+        "INSERT INTO logs (habit, value, unit, timestamp) VALUES ('water', ?, 'ml', ?)",
         (value, now),
     )
     db.commit()
@@ -83,44 +97,37 @@ def log_water():
 @app.route("/logs/water")
 def view_water_logs():
     db = get_db()
-    selected_date = request.args.get("date")
+    target_date = request.args.get("date")
 
-    if selected_date:
+    if target_date:
         rows = db.execute(
-            "SELECT id, value, unit, timestamp FROM logs WHERE habit = 'water'"
-            " AND DATE(timestamp) = DATE(?) ORDER BY id DESC",
-            (selected_date,),
+            "SELECT value, unit, timestamp FROM logs WHERE habit = 'water' AND timestamp LIKE ? ORDER BY id DESC",
+            (f"{target_date}%",),
         ).fetchall()
     else:
         rows = db.execute(
-            "SELECT id, value, unit, timestamp FROM logs WHERE habit = 'water'"
-            " ORDER BY id DESC"
+            "SELECT value, unit, timestamp FROM logs WHERE habit = 'water' ORDER BY id DESC"
         ).fetchall()
 
     db.close()
-    return jsonify([
-        {"id": r[0], "value": r[1], "unit": r[2], "timestamp": r[3]}
-        for r in rows
-    ])
+    return jsonify(
+        [{"value": r[0], "unit": r[1], "timestamp": r[2]} for r in rows]
+    )
 
 
 @app.route("/log/water/undo", methods=["GET", "POST", "DELETE"])
 def undo_water():
     db = get_db()
-    selected_date = request.args.get("date")
+    target_date = request.args.get("date")
 
-    if selected_date:
+    if target_date:
         db.execute(
-            "DELETE FROM logs WHERE id = ("
-            "SELECT id FROM logs WHERE habit = 'water' AND DATE(timestamp) = DATE(?)"
-            " ORDER BY id DESC LIMIT 1)",
-            (selected_date,),
+            "DELETE FROM logs WHERE id = (SELECT id FROM logs WHERE habit = 'water' AND timestamp LIKE ? ORDER BY id DESC LIMIT 1)",
+            (f"{target_date}%",),
         )
     else:
         db.execute(
-            "DELETE FROM logs WHERE id = ("
-            "SELECT id FROM logs WHERE habit = 'water'"
-            " ORDER BY id DESC LIMIT 1)"
+            "DELETE FROM logs WHERE id = (SELECT id FROM logs WHERE habit = 'water' ORDER BY id DESC LIMIT 1)"
         )
 
     db.commit()
@@ -129,15 +136,15 @@ def undo_water():
         {"status": "success", "message": "Last water entry is deleted"}
     )
 
+
 @app.route("/summary/water")
 def water_summary():
     db = get_db()
     target_date = request.args.get("date", datetime.now().strftime("%Y-%m-%d"))
 
     result = db.execute(
-        "SELECT SUM(value) FROM logs WHERE habit = 'water' AND DATE(timestamp)"
-        " = DATE(?)",
-        (target_date,),
+        "SELECT SUM(value) FROM logs WHERE habit = 'water' AND timestamp LIKE ?",
+        (f"{target_date}%",),
     ).fetchone()
     total_water = int(result[0]) if result and result[0] is not None else 0
 
@@ -146,7 +153,7 @@ def water_summary():
             SELECT SUM(value) as daily_sum 
             FROM logs 
             WHERE habit = 'water' 
-            GROUP BY DATE(timestamp)
+            GROUP BY strftime('%Y-%m-%d', timestamp)
         ) 
     """).fetchone()
     avg_water = (
@@ -154,7 +161,7 @@ def water_summary():
     )
 
     setting = db.execute(
-        "SELECT default_value FROM settings WHERE habit = 'water'"
+        "SELECT default_value FROM settings WHERE habit = 'water' "
     ).fetchone()
     default_dose = int(setting[0]) if setting else 245
 
@@ -172,50 +179,55 @@ def water_summary():
         "default_dose": default_dose,
     })
 
-
+# Used AI to give me logic and graph manipulation
 @app.route("/analytics/water")
 def water_analytics():
-    """FIXED & EXTENDED FOR GRAPH TOGGLES:
-
-    1. Fixed tuple parameter syntax: (days - 1,)
-    2. Fixed SQL spacing: ' days'
-    3. Added 'range' param support: ?range=1d (hourly) vs ?range=1w (daily)
-    """
     db = get_db()
-    range_type = request.args.get("range", "1w")
-    selected_date = request.args.get(
-        "date", datetime.now().strftime("%Y-%m-%d")
-    )
+    time_range = request.args.get("range", "1d")
+    target_date = request.args.get("date", datetime.now().strftime("%Y-%m-%d"))
 
-    if range_type == "1d":
-        # Hourly breakdown for the selected day timeline graph
-        query = """
-            SELECT strftime('%H', timestamp) as hour, SUM(value) as total
+    if time_range == "1d":
+        # Hourly breakdown for selected date
+        rows = db.execute("""
+            SELECT strftime('%H:00', timestamp) as log_hour, SUM(value) as total
             FROM logs
-            WHERE habit = 'water' AND DATE(timestamp) = DATE(?)
-            GROUP BY hour
-            ORDER BY hour ASC
-        """
-        rows = db.execute(query, (selected_date,)).fetchall()
-        analytics_data = [
-            {"hour": int(r[0]), "total_ml": int(r[1])} for r in rows
-        ]
-    else:
-        days = request.args.get("days", 7, type=int)
-        query = """
-            SELECT DATE(timestamp) as log_date, SUM(value) as total_ml
+            WHERE habit = 'water' AND timestamp LIKE ?
+            GROUP BY strftime('%H', timestamp)
+            ORDER BY timestamp ASC
+        """, (f"{target_date}%",)).fetchall()
+
+        chart_data = [{"hour": r[0], "total_ml": int(r[1]) if r[1] else 0} for r in rows]
+
+    elif time_range == "1w":
+        # Last 7 days up to selected date
+        rows = db.execute("""
+            SELECT strftime('%Y-%m-%d', timestamp) as log_date, SUM(value) as total
             FROM logs
-            WHERE habit = 'water' AND timestamp >= DATE('now', '-' || ? || ' days')
-            GROUP BY DATE(timestamp)
+            WHERE habit = 'water' 
+              AND date(timestamp) >= date(?, '-6 days')
+              AND date(timestamp) <= date(?)
+            GROUP BY strftime('%Y-%m-%d', timestamp)
             ORDER BY log_date ASC
-        """
-        rows = db.execute(query, (days - 1,)).fetchall()
-        analytics_data = [
-            {"date": r[0], "total_ml": int(r[1]) if r[1] else 0} for r in rows
-        ]
+        """, (target_date, target_date)).fetchall()
+
+        chart_data = [{"date": r[0], "total_ml": int(r[1]) if r[1] else 0} for r in rows]
+
+    else:
+        # Last 30 days up to selected date
+        rows = db.execute("""
+            SELECT strftime('%Y-%m-%d', timestamp) as log_date, SUM(value) as total
+            FROM logs
+            WHERE habit = 'water'
+              AND date(timestamp) >= date(?, '-29 days')
+              AND date(timestamp) <= date(?)
+            GROUP BY strftime('%Y-%m-%d', timestamp)
+            ORDER BY log_date ASC
+        """, (target_date, target_date)).fetchall()
+
+        chart_data = [{"date": r[0], "total_ml": int(r[1]) if r[1] else 0} for r in rows]
 
     db.close()
-    return jsonify(analytics_data)
+    return jsonify(chart_data)
 
 
 @app.route("/hydration")
@@ -232,6 +244,7 @@ def hydration_screen():
 
 # SLEEP
 
+
 @app.route("/log/sleep/toggle")
 def toggle_sleep():
     db = get_db()
@@ -244,8 +257,7 @@ def toggle_sleep():
 
     if session is None:
         db.execute(
-            "INSERT INTO active_sessions (habit, start_time) VALUES ('sleep',"
-            " ?)",
+            "INSERT INTO active_sessions (habit, start_time) VALUES ('sleep', ?)",
             (now_str,),
         )
         db.commit()
@@ -255,13 +267,13 @@ def toggle_sleep():
             "message": "Sleep session is started",
             "start_time": now_str,
         })
+
     else:
         start_time = datetime.strptime(session[0], "%Y-%m-%d %H:%M:%S")
         dura_hours = round((now - start_time).total_seconds() / 3600, 2)
 
         db.execute(
-            "INSERT INTO logs (habit, value, unit, timestamp) VALUES ('sleep',"
-            " ?, 'hours', ?)",
+            "INSERT INTO logs (habit, value, unit, timestamp) VALUES ('sleep', ?, 'hours', ?)",
             (dura_hours, now_str),
         )
         db.execute("DELETE FROM active_sessions WHERE habit = 'sleep'")
@@ -287,15 +299,17 @@ def sleep_summary():
     is_sleeping = session is not None
 
     result = db.execute(
-        "SELECT SUM(value) FROM logs WHERE habit = 'sleep' AND timestamp LIKE"
-        " ?",
+        "SELECT SUM(value) FROM logs WHERE habit = 'sleep' AND timestamp LIKE ?",
         (f"{today}%",),
     ).fetchone()
     total_hours = result[0] if result[0] is not None else 0.0
 
-    quality = (
-        "Good" if total_hours >= 7.0 else ("Fair" if total_hours > 0 else "--")
-    )
+    if total_hours >= 7.0:
+        quality = "Good"
+    elif total_hours > 0:
+        quality = "Fair"
+    else:
+        quality = "--"
 
     avg_result = db.execute("""
         SELECT avg(daily_sum) FROM (
@@ -310,8 +324,7 @@ def sleep_summary():
     )
 
     last_log = db.execute(
-        "SELECT timestamp, value FROM logs WHERE habit = 'sleep' ORDER BY id"
-        " DESC LIMIT 1"
+        "SELECT timestamp, value FROM logs WHERE habit = 'sleep' ORDER BY id DESC LIMIT 1"
     ).fetchone()
     time_range = "--:-- - --:--"
     if last_log:

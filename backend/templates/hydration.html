@@ -5,7 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AEGIS - HYDRATION</title>
     <style>
-        /* BASE & RESET */
+
+        /* GOOD COLORS */
+        /* #603dd0 ,  */
+        :root {
+            --btns: #30a2c4;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -32,7 +38,6 @@
             gap: 16px;
         }
 
-        /* HEADER */
         .header {
             display: flex;
             align-items: center;
@@ -54,18 +59,17 @@
         .back-btn:active {
             opacity: 0.6;
         }
-
-        /* CONTAINER CARDS */
         .glass-card {
-            background: rgba(18, 22, 30, 0.75);
+            background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.071);
+            border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 20px;
             padding: 20px;
         }
 
-        /* DATE SELECTOR */
+
+        
         .date-strip {
             display: flex;
             gap: 10px;
@@ -98,9 +102,9 @@
         }
 
         .date-pill.active {
-            background: #4e88d8;
+            background: var(--btns);
             color: #000000;
-            border-color: #4e88d8;
+            border-color: var(--btns);
             box-shadow: 0 0 12px rgba(66, 146, 226, 0.3);
         }
 
@@ -146,14 +150,13 @@
 
         .bg-ring { stroke: rgba(255, 255, 255, 0.1); }
         .accent-ring {
-            stroke: #4e88d8;
+            stroke: var(--btns);
             stroke-dasharray: 132;
             stroke-dashoffset: 132;
             stroke-linecap: round;
             transition: stroke-dashoffset 0.4s ease;
         }
 
-        /* VARIABLE WATER LOG */
         .stepper-card {
             display: flex;
             flex-direction: column;
@@ -186,8 +189,8 @@
         .step-btn:active { background: rgba(255, 255, 255, 0.25); }
 
         .log-main-btn {
-            background: #4e88d8;
-            color: #000000;
+            background: var(--btns);
+            color: black;
             border: none;
             padding: 10px 28px;
             border-radius: 22px;
@@ -200,7 +203,6 @@
 
         .log-main-btn:active { transform: scale(0.95); }
 
-        /* UNDO */
         .undo-link {
             background: none;
             border: none;
@@ -224,7 +226,6 @@
             opacity: 0.8;
         }
 
-        /* RANGE SELECTOR TOGGLES */
         .range-strip {
             display: flex;
             background: rgba(255, 255, 255, 0.05);
@@ -250,11 +251,10 @@
         }
 
         .range-pill.active {
-            background: #4e88d8;
+            background: var(--btns);
             color: #000000;
         }
 
-        /* GRAPH CARD SVG */
         .graph-card {
             display: flex;
             flex-direction: column;
@@ -275,7 +275,7 @@
 
         .graph-path {
             fill: none;
-            stroke: #4e88d8;
+            stroke: var(--btns);
             stroke-width: 3;
             stroke-linecap: round;
         }
@@ -291,7 +291,7 @@
             font-weight: 500;
         }
 
-        /* TABLE */
+
         .wide-card { width: 100%; }
 
         .card-header {
@@ -341,7 +341,7 @@
         .time-cell { color: #9499a5; }
         .amount-cell {
             font-weight: 600;
-            color: #4e88d8;
+            color: var(--btns);
             text-align: right;
         }
     </style>
@@ -385,7 +385,7 @@
 
         <!-- WATER STEPPER LOGGING CARD -->
         <div class="glass-card stepper-card">
-            <div class="card-title">Water Log per scan:</div>
+            <div class="card-title">Custome Water Log:</div>
             <div class="stepper-controls">
                 <button class="step-btn" onclick="adjustDose(-25)">&minus;</button>
                 <button class="log-main-btn" id="log-btn" onclick="logWater()">245 ml</button>
@@ -397,7 +397,7 @@
             </button>
         </div>
 
-        <!-- RANGE SELECTOR TOGGLE -->
+        <!-- RANGE SELECTOR -->
         <div class="range-strip">
             <div class="range-pill active" onclick="setRange('1d', this)">1d</div>
             <div class="range-pill" onclick="setRange('1w', this)">1w</div>
@@ -413,9 +413,10 @@
                     <line x1="35" y1="60" x2="340" y2="60" class="graph-grid-line" />
                     <line x1="35" y1="100" x2="340" y2="100" class="graph-grid-line" />
 
-                    <text x="0" y="24" class="axis-text">2.5L</text>
-                    <text x="0" y="64" class="axis-text">1.2L</text>
-                    <text x="12" y="104" class="axis-text">0L</text>
+                    <!-- FIX: Added IDs to Y-axis text nodes to allow JS dynamic scale updates -->
+                    <text x="0" y="24" class="axis-text" id="y-axis-top">2.5L</text>
+                    <text x="0" y="64" class="axis-text" id="y-axis-mid">1.2L</text>
+                    <text x="12" y="104" class="axis-text" id="y-axis-bottom">0L</text>
 
                     <path d="" class="graph-path" id="graph-path" />
                     <g id="x-axis-labels"></g>
@@ -448,8 +449,16 @@
     </div>
 
     <script>
-        let activeDate = new Date().toISOString().split('T')[0];
-        let currentDose = { default_dose }
+        //  Done with AI, couldnt figure out java, since i have to learn it, I dont feel i can in this time period, but i tried to understand it
+        function getLocalDateString(dateObj = new Date()) {
+            const year = dateObj.getFullYear();
+            const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const day = String(dateObj.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        let activeDate = getLocalDateString();
+        let currentDose = parseInt("{{ default_dose or 245 }}") || 245;
         let activeRange = '1d';
 
         function initDateStrip() {
@@ -460,7 +469,7 @@
             for (let i = 13; i >= 0; i--) {
                 const d = new Date();
                 d.setDate(today.getDate() - i);
-                const isoDate = d.toISOString().split('T')[0];
+                const isoDate = getLocalDateString(d);
                 const dayNum = d.getDate();
 
                 const pill = document.createElement('div');
@@ -474,6 +483,11 @@
                 };
                 strip.appendChild(pill);
             }
+
+            setTimeout(() => {
+                const activePill = strip.querySelector('.date-pill.active');
+                if (activePill) activePill.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+            }, 50);
         }
 
         function adjustDose(delta) {
@@ -482,19 +496,24 @@
         }
 
         function logWater() {
-            fetch(`/log/water?value=${currentDose}`, { method: 'POST' })
-                .then(res => res.json())
+
+            fetch(`/log/water?value=${currentDose}&date=${activeDate}`, { method: 'POST' })
+                .then(res => {
+                    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+                    return res.json();
+                })
                 .then(() => refreshAll())
                 .catch(err => console.error("Logging error:", err));
         }
 
         function undoLastLog() {
             fetch(`/log/water/undo?date=${activeDate}`, { method: 'DELETE' })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.status === "success" || res.ok) {
-                        refreshAll();
-                    }
+                .then(res => {
+                    if (!res.ok) throw new Error("Server rejected undo request");
+                    return res.text(); 
+                })
+                .then(() => {
+                    refreshAll();
                 })
                 .catch(err => console.error("Undo error:", err));
         }
@@ -508,15 +527,20 @@
 
         function loadSummary() {
             fetch(`/summary/water?date=${activeDate}`)
-                .then(res => res.json())
+                .then(res => {
+                    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+                    return res.json();
+                })
                 .then(data => {
-                    document.getElementById('total-water').innerText = data.total_ml;
-                    document.getElementById('average-water').innerText = data.average_ml;
-                    document.getElementById('goal-percentage').innerText = `${data.percentage}% of Goal`;
+                    document.getElementById('total-water').innerText = data.total_ml ?? data.total ?? 0;
+                    document.getElementById('average-water').innerText = data.average_ml ?? data.average ?? 0;
+                    
+                    const pct = data.percentage ?? 0;
+                    document.getElementById('goal-percentage').innerText = `${pct}% of Goal`;
 
                     const ring = document.getElementById('ring');
                     const circumference = 2 * Math.PI * 21;
-                    const offset = circumference - (data.percentage / 100) * circumference;
+                    const offset = circumference - (pct / 100) * circumference;
                     ring.style.strokeDashoffset = Math.max(0, offset);
                 })
                 .catch(err => console.error("Summary error:", err));
@@ -524,70 +548,119 @@
 
         function formatTimestamp(rawStr) {
             if (!rawStr) return "--:--";
-            const [dateStr, timeStr] = rawStr.split(' ');
+            const normalized = rawStr.replace('T', ' ');
+            const [dateStr, timeStr] = normalized.split(' ');
             if (!timeStr) return rawStr;
 
             const hhmm = timeStr.slice(0, 5);
-            const today = new Date().toISOString().split('T')[0];
+            const todayStr = getLocalDateString();
 
-            return (dateStr === today) ? `${hhmm} - Today` : `${hhmm} - ${dateStr.slice(5)}`;
+            return (dateStr === todayStr) ? `${hhmm} - Today` : `${hhmm} - ${dateStr.slice(5)}`;
         }
 
         function loadHistory() {
             fetch(`/logs/water?date=${activeDate}`)
-                .then(res => res.json())
+                .then(res => {
+                    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+                    return res.json();
+                })
                 .then(logs => {
                     const tbody = document.getElementById('history-rows');
-                    document.getElementById('log-count').innerText = `${logs.length} logged`;
+                    const logList = Array.isArray(logs) ? logs : (logs.history || logs.logs || []);
+                    
+                    document.getElementById('log-count').innerText = `${logList.length} logged`;
 
-                    if (!logs || logs.length === 0) {
+                    if (!logList || logList.length === 0) {
                         tbody.innerHTML = `<tr><td colspan="2" style="text-align: center; color: #717680; padding: 16px 0;">No entries recorded for this date</td></tr>`;
                         return;
                     }
 
-                    tbody.innerHTML = logs.map(log => `
-                        <tr>
-                            <td class="time-cell">${formatTimestamp(log.timestamp)}</td>
-                            <td class="amount-cell">+${log.value} ${log.unit}</td>
-                        </tr>
-                    `).join('');
+                    tbody.innerHTML = logList.map(log => {
+                        const val = log.value ?? log.amount ?? log.ml ?? 0;
+                        const unit = log.unit || 'ml';
+                        const ts = log.timestamp || log.created_at || log.time || '';
+                        return `
+                            <tr>
+                                <td class="time-cell">${formatTimestamp(ts)}</td>
+                                <td class="amount-cell">+${val} ${unit}</td>
+                            </tr>
+                        `;
+                    }).join('');
                 })
                 .catch(err => console.error("History error:", err));
         }
 
         function loadAnalytics() {
             fetch(`/analytics/water?range=${activeRange}&date=${activeDate}`)
-                .then(res => res.json())
+                .then(res => {
+                    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+                    return res.json();
+                })
                 .then(data => {
                     const path = document.getElementById('graph-path');
                     const xAxisGroup = document.getElementById('x-axis-labels');
                     xAxisGroup.innerHTML = '';
 
-                    if (!data || data.length === 0) {
+                    const pointsArray = Array.isArray(data) ? data : (data.points || data.history || []);
+
+                    if (!pointsArray || pointsArray.length === 0) {
                         path.setAttribute('d', 'M 35 100 L 340 100');
                         return;
                     }
 
-                    const maxGoal = 2500;
+                    // Auto-scale Y-axis range
+                    const maxVal = Math.max(...pointsArray.map(p => p.total_ml || p.ml || p.value || 0));
+                    const maxGoal = Math.max(2500, maxVal * 1.1); // 10% padding
+
+                    const topLabel = (maxGoal / 1000).toFixed(1) + 'L';
+                    const midLabel = (maxGoal / 2000).toFixed(1) + 'L';
+                    document.getElementById('y-axis-top').textContent = topLabel;
+                    document.getElementById('y-axis-mid').textContent = midLabel;
+
                     const xStart = 35;
                     const xEnd = 340;
                     const yTop = 20;
                     const yBottom = 100;
                     const availableWidth = xEnd - xStart;
 
-                    const stepX = availableWidth / Math.max(1, data.length - 1);
+                    if (pointsArray.length === 1) {
+                        const val = pointsArray[0].total_ml || pointsArray[0].ml || pointsArray[0].value || 0;
+                        const y = yBottom - (val / maxGoal) * (yBottom - yTop);
+                        path.setAttribute('d', `M ${xStart} ${y} L ${xEnd} ${y}`);
 
-                    const points = data.map((item, idx) => {
-                        const val = item.total_ml || item.ml || 0;
+                        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                        text.setAttribute("x", (xStart + xEnd) / 2);
+                        text.setAttribute("y", "125");
+                        text.setAttribute("class", "axis-text");
+                        text.setAttribute("text-anchor", "middle");
+                        
+                        let labelVal = String(pointsArray[0].hour || pointsArray[0].date || pointsArray[0].timestamp || 'Today');
+                        if (labelVal.includes('T')) labelVal = labelVal.split('T')[1].slice(0, 5);
+                        text.textContent = labelVal;
+                        xAxisGroup.appendChild(text);
+                        return;
+                    }
+
+                    const stepX = availableWidth / (pointsArray.length - 1);
+
+   
+                    const points = pointsArray.map((item, idx) => {
+                        const val = item.total_ml || item.ml || item.value || 0;
                         const x = xStart + (idx * stepX);
-                        const y = yBottom - Math.min(1, val / maxGoal) * (yBottom - yTop);
-                        return { x, y, label: item.hour || item.date || '' };
+                        const y = yBottom - (val / maxGoal) * (yBottom - yTop);
+                        return { x, y, label: item.hour || item.date || item.timestamp || '' };
                     });
 
+                    // Draw the SVG path
                     const pathStr = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
                     path.setAttribute('d', pathStr);
 
-                    const labelInterval = Math.ceil(data.length / 5);
+                    // Smart X-Axis Labeling based on range selection
+                    let labelInterval = 1;
+                    if (activeRange === '1d') labelInterval = Math.max(1, Math.floor(points.length / 5)); 
+                    else if (activeRange === '1w') labelInterval = 1; // Show all 7 days
+                    else if (activeRange === '1m') labelInterval = Math.max(1, Math.floor(points.length / 6));
+
                     points.forEach((p, i) => {
                         if (i % labelInterval === 0 || i === points.length - 1) {
                             const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
@@ -596,9 +669,18 @@
                             text.setAttribute("class", "axis-text");
                             text.setAttribute("text-anchor", "middle");
 
-                            let displayLabel = p.label;
-                            if (displayLabel.length > 5) displayLabel = displayLabel.slice(-5);
-                            
+                            let displayLabel = String(p.label);
+
+                            if (activeRange === '1d') {
+                                if (displayLabel.includes('T')) displayLabel = displayLabel.split('T')[1].slice(0, 5);
+                            } else {
+                                if (displayLabel.includes('T')) displayLabel = displayLabel.split('T')[0];
+                                if (displayLabel.includes('-')) {
+                                    const parts = displayLabel.split('-');
+                                    if (parts.length === 3) displayLabel = `${parts[1]}/${parts[2]}`;
+                                }
+                            }
+
                             text.textContent = displayLabel;
                             xAxisGroup.appendChild(text);
                         }
